@@ -52,10 +52,11 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Extension.cs" />
-    <Compile Include="IOutput.cs" />
+    <Compile Include="ISiteDefine.cs" />
     <Compile Include="Parser.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="YamlSiteDefine.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />

@@ -1,8 +1,20 @@
 html {
-    font-family: "A-OTF-RYUMINPR5-REGULAR", 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
-    writing-mode: vertical-rl;
     -webkit-writing-mode: vertical-rl;
-    -epub-writing-mode: vertical-rl;
-    line-height: 1.75;
-    text-align: justify;
+    -epub-writing-mode:   vertical-rl;
+    writing-mode:         vertical-rl;
+ 
+    -webkit-text-orientation: vertical-right;
+    -epub-text-orientation:   vertical-right;
+    text-orientation:         vertical-right;
+ 
+    line-height: 1.8;
+    letter-spacing: 0.1em;
+ 
+    -webkit-word-break: break-all;
+    -epub-word-break: break-all;
+    word-break: break-all;
+ 
+    -webkit-line-break: strict;
+    -epub-line-break: strict;
+    line-break: strict;
 }

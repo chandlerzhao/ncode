@@ -8,11 +8,13 @@ namespace ncode
 {
     internal abstract class Parser
     {
-        protected IOutput _info;
+        public delegate void InfoOutput(string info);
+        protected InfoOutput print;
 
-        protected Parser(IOutput info)
+        protected Parser(InfoOutput info)
         {
-            this._info = info;
+            if (info == null) this.print = (x => { });
+            else this.print = info;
         }
 
         protected HtmlDocument GetDocument(string uri, int timeout = 3000, int retry = 5)
@@ -22,7 +24,7 @@ namespace ncode
 
         protected HtmlDocument GetDocument(Uri uri, int timeout = 3000, int retry = 5)
         {
-            _info.WriteLine("fetching: " + uri);
+            print("fetching: " + uri);
             var web = new HtmlWeb();
             web.PreRequest = delegate (HttpWebRequest webRequest)
             {
@@ -32,7 +34,7 @@ namespace ncode
             HtmlDocument doc = null;
             for (int i = 0; i <= retry && doc == null; ++i)
             {
-                if (i != 0) _info.WriteLine("Retry " + i + " : " + uri);
+                if (i != 0) print("Retry " + i + " : " + uri);
                 try { doc = web.Load(uri.AbsoluteUri); } catch { }
             }
             return doc;
@@ -56,7 +58,7 @@ namespace ncode
 
     internal class IndexParse : Parser
     {
-        public IndexParse(IOutput _info) : base(_info)
+        public IndexParse(InfoOutput _info = null) : base(_info)
         {
         }
 
@@ -75,7 +77,7 @@ namespace ncode
             var volumes = content.SelectNodes(@"./div[@class=""mainList""]");
             foreach (var v in volumes)
             {
-                var vidx = new List<KeyValuePair<string,string>>();
+                var vidx = new List<KeyValuePair<string, string>>();
                 var vtitle = v.SelectSingleNode(@"./div[@class=""clearfix mainListTop""]").InnerText._Clean();
                 sb.AppendLine(@"<p>" + vtitle + @"</p>");
                 var chapters = v.SelectNodes(@"./div[@class=""mainList_In""]//a");
@@ -93,7 +95,7 @@ namespace ncode
             {
                 foreach (var c in v.Value)
                 {
-                    sb.AppendLine(new PageParse(_info).GetContent(c.Value, v.Key));
+                    sb.AppendLine(new PageParse(print).GetContent(c.Value, v.Key));
                 }
             }
 
@@ -103,7 +105,7 @@ namespace ncode
 
     internal class PageParse : Parser
     {
-        public PageParse(IOutput _info) : base(_info)
+        public PageParse(InfoOutput _info = null) : base(_info)
         {
         }
 
