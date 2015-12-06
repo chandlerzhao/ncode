@@ -24,7 +24,7 @@ namespace ncode
         public static HtmlNode _RemoveNodes(this HtmlNode root, string Name)
         { foreach (var r in root._GetNodes(Name)) { r.Remove(); } return root; }
 
-        public static string _Clean(this string source)
+        public static string MultiTrim(this string source)
         {
             var single = source
                 .Split(new char[] { '\r', '\n' })

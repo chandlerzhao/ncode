@@ -3,26 +3,25 @@ using System;
 using System.Collections.Generic;
 using System.Net;
 using System.Text;
+using System.Text.RegularExpressions;
 
 namespace ncode
 {
-    internal abstract class Parser
+    internal class Parser
     {
-        public delegate void InfoOutput(string info);
-        protected InfoOutput print;
+        public delegate void InfoOutput(string info); // 定义信息输出, 可用于 Console 和 TextBox 等
 
-        protected Parser(InfoOutput info)
+        private InfoOutput print;
+        private ISiteDefine SiteDefine;
+
+        public Parser(ISiteDefine define, InfoOutput info = null)
         {
-            if (info == null) this.print = (x => { });
-            else this.print = info;
+            if (info == null) { this.print = (x => { }); }
+            else { this.print = info; }
+            this.SiteDefine = define;
         }
 
-        protected HtmlDocument GetDocument(string uri, int timeout = 3000, int retry = 5)
-        {
-            return GetDocument(new Uri(uri), timeout, retry);
-        }
-
-        protected HtmlDocument GetDocument(Uri uri, int timeout = 3000, int retry = 5)
+        private HtmlDocument GetDocument(Uri uri, int timeout = 3000, int retry = 5)
         {
             print("fetching: " + uri);
             var web = new HtmlWeb();
@@ -38,89 +37,102 @@ namespace ncode
                 try { doc = web.Load(uri.AbsoluteUri); } catch { }
             }
             return doc;
-        }
+        }        
 
-        protected HtmlNode GetCore(HtmlDocument doc, int style = 0)
+        public string FetchAndGenerate(string uri)
         {
-            switch (style)
-            {
-                case 0:
-                    return doc.DocumentNode.SelectSingleNode(@"/html/body//div[@class=""informList""]");
-
-                case 1:
-                    return doc.DocumentNode.SelectSingleNode(@"//div[@class=""readcon""]");
-
-                default:
-                    return null;
-            }
-        }
-    }
-
-    internal class IndexParse : Parser
-    {
-        public IndexParse(InfoOutput _info = null) : base(_info)
-        {
-        }
-
-        public string GetAllContent(string uri)
-        {
-            var u = new Uri(uri);
-            var doc = GetDocument(u);
-            var content = GetCore(doc);
+            var headUri = new Uri(uri);
+            var defines = SiteDefine.Define[headUri.Host];
+            var listUri = new Uri(Regex.Replace(headUri.AbsoluteUri, defines.HeadPage.Redirect.Key, defines.HeadPage.Redirect.Value));
 
             var sb = new StringBuilder();
-            sb.Append(@"<p>" + doc.DocumentNode.SelectSingleNode(@"//div[@class=""bookContainTop""]//span").InnerText._Clean());
-            sb.Append(@" (" + doc.DocumentNode.SelectSingleNode(@"//div[@class=""bookContainTop""]//a[2]").InnerText._Clean());
-            sb.AppendLine(@" / " + doc.DocumentNode.SelectSingleNode(@"//div[@class=""bookContainTop""]//a[3]").InnerText._Clean() + @")</p>");
+            HtmlNode doc = null;
 
-            var index = new List<KeyValuePair<string, List<KeyValuePair<string, string>>>>();
-            var volumes = content.SelectNodes(@"./div[@class=""mainList""]");
-            foreach (var v in volumes)
+            switch (defines.HeadPage.SynopLoc)
             {
-                var vidx = new List<KeyValuePair<string, string>>();
-                var vtitle = v.SelectSingleNode(@"./div[@class=""clearfix mainListTop""]").InnerText._Clean();
-                sb.AppendLine(@"<p>" + vtitle + @"</p>");
-                var chapters = v.SelectNodes(@"./div[@class=""mainList_In""]//a");
-                foreach (var c in chapters)
-                {
-                    var src = u.Scheme + "://" + u.Host + c.Attributes["href"].Value;
-                    var ctitle = c.InnerText._Clean();
-                    sb.AppendLine(@"<p>" + ctitle + @"</p>");
-                    vidx.Add(ctitle, src);
-                }
-                index.Add(vtitle, vidx);
+                case SiteInfo._HeadPage.S_Loc.Cover:
+                    doc = GetDocument(headUri).DocumentNode;
+                    break;
+                case SiteInfo._HeadPage.S_Loc.Catalog:
+                    doc = GetDocument(listUri).DocumentNode;
+                    break;
+                default:
+                    break;
             }
+            
+
+            
+            
+
+            try { sb.Append(@"<p>" + doc.SelectSingleNode(defines.HeadPage.Title).InnerText.MultiTrim()); } catch { }
+            try { sb.Append(@" (" + doc.SelectSingleNode(defines.HeadPage.Author).InnerText.MultiTrim() + @")"); } catch { }
+            try { sb.Append(@" (" + doc.SelectSingleNode(defines.HeadPage.Genre).InnerText.MultiTrim()); } catch { }
+            try { sb.AppendLine(@" / " + doc.SelectSingleNode(defines.HeadPage.SubGenre).InnerText.MultiTrim() + @")</p>"); } catch { }
+            try { sb.AppendLine(@"<p>" + doc.SelectSingleNode(defines.HeadPage.Synopsis).InnerText.MultiTrim() + @"</p>"); } catch { }
+
+            var index = new List<KeyValuePair<string, string>>();
+
+            switch (defines.Volume.Type)
+            {
+                case SiteInfo._Volume._Type.Fold:
+                    {
+                        var volumes = doc.SelectNodes(defines.Volume.Handle);
+                        foreach (var v in volumes)
+                        {
+                            var vtitle = v.SelectSingleNode(defines.Volume.Name).InnerText.MultiTrim();
+                            var chapters = v.SelectNodes(defines.Chapter.Handle);
+                            foreach (var c in chapters)
+                            {
+                                var ctitle = c.SelectSingleNode(defines.Chapter.Name).InnerText.MultiTrim();
+                                var clink = c.SelectSingleNode(defines.Chapter.Link).Attributes["href"].Value;
+                                index.Add(vtitle + " " + ctitle, clink);
+                            }
+                        }
+                        break;
+                    }
+                case SiteInfo._Volume._Type.Plat:
+                    {
+                        var chapters = doc.SelectNodes(defines.Volume.Handle + " | " + defines.Chapter.Handle);
+                        string vtitle = "";
+                        foreach (var c in chapters)
+                        {
+                            try { vtitle = c.SelectSingleNode(defines.Volume.Name).InnerText.MultiTrim(); } catch { }
+                            var ctitle = c.SelectSingleNode(defines.Chapter.Name).InnerText.MultiTrim();
+                            var clink = c.SelectSingleNode(defines.Chapter.Link).Attributes["href"].Value;
+                            index.Add((vtitle + " " + ctitle).Trim(), clink);
+                        }
+                        break;
+                    }
+                default:
+                    break;
+            }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
             foreach (var v in index)
             {
                 foreach (var c in v.Value)
                 {
-                    sb.AppendLine(new PageParse(print).GetContent(c.Value, v.Key));
+                    //sb.AppendLine(new PageParse(print).GetContent(c.Value, v.Key));
                 }
             }
-
-            return sb.ToString();
-        }
-    }
-
-    internal class PageParse : Parser
-    {
-        public PageParse(InfoOutput _info = null) : base(_info)
-        {
-        }
-
-        public string GetContent(string uri, string volume)
-        {
-            var content = GetCore(GetDocument(uri), 1);
-            ;
-            var sb = new StringBuilder();
-
-            sb.AppendLine(@"<p id=""0"">");
-            sb.Append(volume + " ");
-            sb.AppendLine(content.SelectSingleNode(@"./h2").InnerText._Clean());
-            sb.AppendLine(@"</p>");
-
-            sb.AppendLine(content.SelectSingleNode(@"./div[@class=""myContent""]").InnerHtml);
 
             return sb.ToString();
         }

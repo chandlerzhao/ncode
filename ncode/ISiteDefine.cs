@@ -4,27 +4,49 @@ namespace ncode
 {
     public class SiteInfo
     {
-        // Main info
-        public string Title { get; set; }
+        public struct _HeadPage
+        {
+            public enum S_Loc { Null, Cover, Catalog, }
 
-        public string Genre { get; set; }
-        public string Author { get; set; }
-        public string Intro { get; set; }
+            public S_Loc SynopLoc { get; set; }
+            public KeyValuePair<string, string> Redirect { get; set; }
+            public string Title { get; set; }
+            public string Genre { get; set; }
+            public string SubGenre { get; set; }
+            public string Author { get; set; }
+            public string Synopsis { get; set; }
+        }
 
-        // Index info
-        public string Volume { get; set; }
+        public _HeadPage HeadPage { get; set; }
 
-        public string Chapter { get; set; }
+        public struct _Volume
+        {
+            public enum _Type { Null, Fold, Plat, }
 
-        public enum V_C_Type { Null, Fold, Plat, }
+            public string Handle { get; set; }
+            public string Name { get; set; } // Relative of @Handle
+            public _Type Type { get; set; }
+        }
 
-        public V_C_Type type { get; set; }
-        public string ChLink { get; set; }
+        public _Volume Volume { get; set; }
 
-        // Chapter info
-        public string SubTitle { get; set; }
+        public struct _Chapter
+        {
+            public string Handle { get; set; } // Relative of @Volume.@Handle when @Fold, Absolute when @Plat
+            public string Name { get; set; } // Relative of @Handle
+            public string Link { get; set; } // Relative of @Handle
+        }
 
-        public string Text { get; set; }
+        public _Chapter Chapter { get; set; }
+
+        public struct _TextPage
+        {
+            public string Handle { get; set; }
+            public string Name { get; set; } // Relative of @Handle
+            public string Body { get; set; } // Relative of @Handle
+        }
+
+        public _TextPage TextPage { get; set; }
     }
 
     public interface ISiteDefine
