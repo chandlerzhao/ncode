@@ -9,7 +9,11 @@ namespace ncode
     internal class YamlSiteDefine : ISiteDefine
     {
         public Dictionary<string, SiteInfo> Define { get; set; }
-        public YamlSiteDefine() { Define = new Dictionary<string, SiteInfo>(); }
+
+        public YamlSiteDefine()
+        {
+            Define = new Dictionary<string, SiteInfo>();
+        }
 
         public void Load(string path)
         {

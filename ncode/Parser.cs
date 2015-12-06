@@ -80,13 +80,15 @@ namespace ncode
                         var volumes = doc.SelectNodes(defines.Volume.Handle);
                         foreach (var v in volumes)
                         {
-                            var vtitle = v.SelectSingleNode(defines.Volume.Name).OuterHtml.MultiTrim();
+                            var vtitle = v.SelectSingleNode(defines.Volume.Name).InnerText.MultiTrim();
                             var chapters = v.SelectNodes(defines.Chapter.Handle);
                             foreach (var c in chapters)
                             {
-                                var ctitle = c.SelectSingleNode(defines.Chapter.Name).OuterHtml.MultiTrim();
+                                var ctitle = c.SelectSingleNode(defines.Chapter.Name).InnerText.MultiTrim();
                                 var clink = c.SelectSingleNode(defines.Chapter.Link).Attributes["href"].Value;
-                                index.Add(vtitle + " " + ctitle, clink);
+                                var name = vtitle + " " + ctitle;
+                                sb.AppendLine(@"<p>" + name + @"</p>");
+                                index.Add(name, clink);
                             }
                         }
                         break;
@@ -97,9 +99,11 @@ namespace ncode
                         string vtitle = "";
                         foreach (var c in chapters)
                         {
-                            try { vtitle = c.SelectSingleNode(defines.Volume.Name).OuterHtml.MultiTrim(); } catch { }
-                            var ctitle = c.SelectSingleNode(defines.Chapter.Name).OuterHtml.MultiTrim();
+                            try { vtitle = c.SelectSingleNode(defines.Volume.Name).InnerText.MultiTrim(); } catch { }
+                            var ctitle = c.SelectSingleNode(defines.Chapter.Name).InnerText.MultiTrim();
                             var clink = c.SelectSingleNode(defines.Chapter.Link).Attributes["href"].Value;
+                            var name = vtitle + " " + ctitle;
+                            sb.AppendLine(@"<p>" + name + @"</p>");
                             index.Add((vtitle + " " + ctitle).Trim(), clink);
                         }
                         break;
@@ -112,6 +116,7 @@ namespace ncode
             foreach (var idx in index)
             {
                 var link = idx.Value;
+                if (string.IsNullOrWhiteSpace(link)) continue;
                 if (Regex.IsMatch(link, @"^/.*$")) { link = listUri.RootPath() + link; }
                 else if (Regex.IsMatch(link, @".*://.*")) { }
                 else { link = listUri.ParentPath() + link; }

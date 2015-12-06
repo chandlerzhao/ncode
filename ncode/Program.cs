@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Reflection;
 using System.Text;
 
 namespace ncode
@@ -15,7 +16,11 @@ namespace ncode
             }
 
             var ysd = new YamlSiteDefine();
-            ysd.Load("ncode.yaml");
+            var curExe = Assembly.GetExecutingAssembly().Location;
+            var curDir = Path.GetDirectoryName(curExe);
+            var curFn = Path.GetFileNameWithoutExtension(curExe);
+
+            ysd.Load(Path.Combine(curDir, curFn) + ".yaml");
 
             var ip = new Parser(ysd, x => Console.WriteLine(x));
             var ac = ip.FetchAndGenerate(args[0]);
@@ -25,6 +30,6 @@ namespace ncode
             var sw = new StreamWriter(args[1], false, Encoding.UTF8);
             sw.Write(ac);
             sw.Close();
-        }        
+        }
     }
 }

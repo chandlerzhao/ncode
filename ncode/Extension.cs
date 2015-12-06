@@ -1,9 +1,6 @@
-﻿using System.Net;
-using System.IO;
+﻿using System;
 using System.Collections.Generic;
-using HtmlAgilityPack;
 using System.Linq;
-using System;
 
 namespace ncode
 {
@@ -24,6 +21,7 @@ namespace ncode
 
         public static string ParentPath(this Uri uri)
         { return uri.AbsolutePath.Remove(uri.AbsolutePath.Length - uri.Segments.Last().Length); }
+
         public static string RootPath(this Uri uri)
         { return uri.Scheme + @"://" + uri.Host; }
     }
