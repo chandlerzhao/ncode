@@ -9,7 +9,11 @@ namespace ncode
             public enum S_Loc { Null, Cover, Catalog, }
 
             public S_Loc SynopLoc { get; set; }
-            public KeyValuePair<string, string> Redirect { get; set; }
+            public struct _RepPair {
+                public string Pattern { get; set; }
+                public string Replacement { get; set; }
+            }
+            public _RepPair Redirect { get; set; }
             public string Title { get; set; }
             public string Genre { get; set; }
             public string SubGenre { get; set; }

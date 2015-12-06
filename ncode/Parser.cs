@@ -37,13 +37,13 @@ namespace ncode
                 try { doc = web.Load(uri.AbsoluteUri); } catch { }
             }
             return doc;
-        }        
+        }
 
         public string FetchAndGenerate(string uri)
         {
             var headUri = new Uri(uri);
             var defines = SiteDefine.Define[headUri.Host];
-            var listUri = new Uri(Regex.Replace(headUri.AbsoluteUri, defines.HeadPage.Redirect.Key, defines.HeadPage.Redirect.Value));
+            var listUri = new Uri(Regex.Replace(headUri.AbsoluteUri, defines.HeadPage.Redirect.Pattern, defines.HeadPage.Redirect.Replacement));
 
             var sb = new StringBuilder();
             HtmlNode doc = null;
@@ -59,16 +59,15 @@ namespace ncode
                 default:
                     break;
             }
-            
-
-            
-            
 
             try { sb.Append(@"<p>" + doc.SelectSingleNode(defines.HeadPage.Title).InnerText.MultiTrim()); } catch { }
             try { sb.Append(@" (" + doc.SelectSingleNode(defines.HeadPage.Author).InnerText.MultiTrim() + @")"); } catch { }
             try { sb.Append(@" (" + doc.SelectSingleNode(defines.HeadPage.Genre).InnerText.MultiTrim()); } catch { }
             try { sb.AppendLine(@" / " + doc.SelectSingleNode(defines.HeadPage.SubGenre).InnerText.MultiTrim() + @")</p>"); } catch { }
-            try { sb.AppendLine(@"<p>" + doc.SelectSingleNode(defines.HeadPage.Synopsis).InnerText.MultiTrim() + @"</p>"); } catch { }
+            try { sb.AppendLine(@"<p>" + doc.SelectSingleNode(defines.HeadPage.Synopsis).InnerHtml.MultiTrim() + @"</p>"); } catch { }
+
+            if (defines.HeadPage.SynopLoc == SiteInfo._HeadPage.S_Loc.Cover)
+            { doc = GetDocument(listUri).DocumentNode; } // Now doc points `list`
 
             var index = new List<KeyValuePair<string, string>>();
 
@@ -113,7 +112,7 @@ namespace ncode
 
 
 
-
+            
 
 
 
