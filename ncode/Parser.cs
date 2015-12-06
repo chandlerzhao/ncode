@@ -53,18 +53,20 @@ namespace ncode
                 case SiteInfo._HeadPage.S_Loc.Cover:
                     doc = GetDocument(headUri).DocumentNode;
                     break;
+
                 case SiteInfo._HeadPage.S_Loc.Catalog:
                     doc = GetDocument(listUri).DocumentNode;
                     break;
+
                 default:
                     break;
             }
 
-            try { sb.Append(@"<p>" + doc.SelectSingleNode(defines.HeadPage.Title).InnerText.MultiTrim()); } catch { }
-            try { sb.Append(@" (" + doc.SelectSingleNode(defines.HeadPage.Author).InnerText.MultiTrim() + @")"); } catch { }
-            try { sb.Append(@" (" + doc.SelectSingleNode(defines.HeadPage.Genre).InnerText.MultiTrim()); } catch { }
-            try { sb.AppendLine(@" / " + doc.SelectSingleNode(defines.HeadPage.SubGenre).InnerText.MultiTrim() + @")</p>"); } catch { }
-            try { sb.AppendLine(@"<p>" + doc.SelectSingleNode(defines.HeadPage.Synopsis).InnerHtml.MultiTrim() + @"</p>"); } catch { }
+            try { sb.Append(@"<p>" + doc.SelectSingleNode(defines.HeadPage.Title).OuterHtml.MultiTrim()); } catch { }
+            try { sb.Append(@" (" + doc.SelectSingleNode(defines.HeadPage.Author).OuterHtml.MultiTrim() + @")"); } catch { }
+            try { sb.Append(@" (" + doc.SelectSingleNode(defines.HeadPage.Genre).OuterHtml.MultiTrim()); } catch { }
+            try { sb.AppendLine(@" / " + doc.SelectSingleNode(defines.HeadPage.SubGenre).OuterHtml.MultiTrim() + @")</p>"); } catch { }
+            try { sb.AppendLine(@"<p>" + doc.SelectSingleNode(defines.HeadPage.Synopsis).OuterHtml.MultiTrim() + @"</p>"); } catch { }
 
             if (defines.HeadPage.SynopLoc == SiteInfo._HeadPage.S_Loc.Cover)
             { doc = GetDocument(listUri).DocumentNode; } // Now doc points `list`
@@ -78,11 +80,11 @@ namespace ncode
                         var volumes = doc.SelectNodes(defines.Volume.Handle);
                         foreach (var v in volumes)
                         {
-                            var vtitle = v.SelectSingleNode(defines.Volume.Name).InnerText.MultiTrim();
+                            var vtitle = v.SelectSingleNode(defines.Volume.Name).OuterHtml.MultiTrim();
                             var chapters = v.SelectNodes(defines.Chapter.Handle);
                             foreach (var c in chapters)
                             {
-                                var ctitle = c.SelectSingleNode(defines.Chapter.Name).InnerText.MultiTrim();
+                                var ctitle = c.SelectSingleNode(defines.Chapter.Name).OuterHtml.MultiTrim();
                                 var clink = c.SelectSingleNode(defines.Chapter.Link).Attributes["href"].Value;
                                 index.Add(vtitle + " " + ctitle, clink);
                             }
@@ -95,8 +97,8 @@ namespace ncode
                         string vtitle = "";
                         foreach (var c in chapters)
                         {
-                            try { vtitle = c.SelectSingleNode(defines.Volume.Name).InnerText.MultiTrim(); } catch { }
-                            var ctitle = c.SelectSingleNode(defines.Chapter.Name).InnerText.MultiTrim();
+                            try { vtitle = c.SelectSingleNode(defines.Volume.Name).OuterHtml.MultiTrim(); } catch { }
+                            var ctitle = c.SelectSingleNode(defines.Chapter.Name).OuterHtml.MultiTrim();
                             var clink = c.SelectSingleNode(defines.Chapter.Link).Attributes["href"].Value;
                             index.Add((vtitle + " " + ctitle).Trim(), clink);
                         }
@@ -106,31 +108,19 @@ namespace ncode
                     break;
             }
 
-
-
-
-
-
-
-            
-
-
-
-
-
-
-
-
-
-
-
-
-            foreach (var v in index)
+            //////////////////////////////////////////////////////////
+            foreach (var idx in index)
             {
-                foreach (var c in v.Value)
-                {
-                    //sb.AppendLine(new PageParse(print).GetContent(c.Value, v.Key));
-                }
+                var link = idx.Value;
+                if (Regex.IsMatch(link, @"^/.*$")) { link = listUri.RootPath() + link; }
+                else if (Regex.IsMatch(link, @".*://.*")) { }
+                else { link = listUri.ParentPath() + link; }
+
+                var textbox = GetDocument(new Uri(link)).DocumentNode.SelectSingleNode(defines.TextPage.Handle);
+
+                sb.AppendLine(textbox.SelectSingleNode(defines.TextPage.Name).OuterHtml.MultiTrim());
+                foreach (var p in textbox.SelectNodes(defines.TextPage.Body))
+                { sb.AppendLine(p.OuterHtml.MultiTrim()); }
             }
 
             return sb.ToString();

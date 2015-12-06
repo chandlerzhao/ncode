@@ -1,0 +1,46 @@
+﻿8kana.com:
+  HeadPage:
+    SynopLoc: Cover
+    Redirect:
+      Pattern: book
+      Replacement: list
+    Title: //div[@class="bookContain_l_conh2"]//h2
+    Genre: //div[@class="wrapper bookContainTop"]//a[2]
+    SubGenre: //div[@class="wrapper bookContainTop"]//a[3]
+    Author: //ul[@class="bookContain_l_conul1"]//a
+    Synopsis: //div[@class="bookPresent_T"]//p
+  Volume:
+    Handle: //div[@class="mainList"]
+    Name: .//div[@class="clearfix mainListTop"]//span
+    Type: Fold
+  Chapter:
+    Handle: .//div[@class="mainList_In"]//li
+    Name: .//div
+    Link: .//a
+  TextPage:
+    Handle: //div[@class="readcon"]
+    Name: .//h2
+    Body: .//div[@class="myContent"]
+ncode.syosetu.com:
+  HeadPage:
+    SynopLoc: Catalog
+    Redirect:
+      Pattern: ''
+      Replacement: ''
+    Title: //p[@class="novel_title"]
+    Genre: /null
+    SubGenre: /null
+    Author: //div[@class="novel_writername"]//a
+    Synopsis: //div[@id="novel_ex"]
+  Volume:
+    Handle: /null
+    Name: /null
+    Type: Plat
+  Chapter:
+    Handle: //dl[@class="novel_sublist2"]
+    Name: ./dd/a
+    Link: ./dd/a
+  TextPage:
+    Handle: //div[@id="novel_color"]
+    Name: .//p[@class="novel_subtitle"]
+    Body: .//div[@id="novel_p"] | .//div[@id="novel_honbun"] | .//div[@id="novel_a"]

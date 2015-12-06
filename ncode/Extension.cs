@@ -1,6 +1,9 @@
-﻿using System.Collections.Generic;
+﻿using System.Net;
+using System.IO;
+using System.Collections.Generic;
 using HtmlAgilityPack;
 using System.Linq;
+using System;
 
 namespace ncode
 {
@@ -18,5 +21,10 @@ namespace ncode
 
         public static void Add<TKey, TValue>(this List<KeyValuePair<TKey, TValue>> list, TKey key, TValue value)
         { list.Add(new KeyValuePair<TKey, TValue>(key, value)); }
+
+        public static string ParentPath(this Uri uri)
+        { return uri.AbsolutePath.Remove(uri.AbsolutePath.Length - uri.Segments.Last().Length); }
+        public static string RootPath(this Uri uri)
+        { return uri.Scheme + @"://" + uri.Host; }
     }
 }
